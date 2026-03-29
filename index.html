@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hobbspace - web apps in one place</title>
+<link rel="stylesheet" href="style.css">
+<script src="blockly/blockly_compressed.js"></script>
+<script src="blockly/blocks_compressed.js"></script>
+<script src="blockly/javascript_compressed.js"></script>
+<script src="blocks.js"></script>
+<script src="generator.js"></script>
+</head>
+<body>
+<h1>Graphical Block-based Website Builder</h1>
+
+<div id="builder-container">
+  <div id="blocklyDiv" style="height: 480px; width: 50%; float: left;"></div>
+  <iframe id="preview" style="width: 50%; height: 480px; border: 1px solid #ccc;"></iframe>
+</div>
+
+<button onclick="publishSite()">Publish Website</button>
+
+<xml id="toolbox" style="display: none">
+  <category name="Website">
+    <block type="hero_block"></block>
+    <block type="text_block"></block>
+    <block type="footer_block"></block>
+    <block type="button_block"></block>
+  </category>
+</xml>
+
+<script>
+  const workspace = Blockly.inject('blocklyDiv', {toolbox: document.getElementById('toolbox')});
+
+  // Live preview
+  workspace.addChangeListener(() => {
+    const html = Blockly.JavaScript.workspaceToCode(workspace);
+    document.getElementById('preview').srcdoc = `
+      <!DOCTYPE html>
+      <html>
+      <head><link rel="stylesheet" href="style.css"></head>
+      <body>${html}</body>
+      </html>`;
+  });
+
+  // Publish site to backend
+  async function publishSite() {
+    const html = Blockly.JavaScript.workspaceToCode(workspace);
+    const response = await fetch('/api/publish', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({html})
+    });
+    const data = await response.json();
+    alert('Site published at: ' + data.url);
+  }
+</script>
+</body>
+</html>
